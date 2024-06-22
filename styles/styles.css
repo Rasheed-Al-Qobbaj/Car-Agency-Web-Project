@@ -1,4 +1,3 @@
-/* General Styles */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -6,7 +5,6 @@ body {
     color: #f1f1f1;
 }
 
-/* Flexbox Layout */
 .container {
     display: flex;
     flex-direction: column;
@@ -49,7 +47,6 @@ body {
     background-color: #1e1e1e;
 }
 
-/* Header Section */
 .header {
     display: flex;
     justify-content: space-between;
@@ -58,7 +55,12 @@ body {
 }
 
 .header .logo {
-    font-size: 24px;
+    font-size: 24px;   
+}
+
+.header img {
+    width: 100px;
+    height: auto;
 }
 
 .header .nav-links {
@@ -71,7 +73,11 @@ body {
     text-decoration: none;
 }
 
-/* Footer Section */
+.header a {
+    color: #f1f1f1;
+    text-decoration: none;
+}
+
 .footer {
     display: flex;
     justify-content: space-between;
@@ -80,11 +86,15 @@ body {
     font-size: 14px;
 }
 
+.footer img {
+    width: 50px;
+    height: auto;
+}
+
 .footer .contact-info {
     text-align: right;
 }
 
-/* Main Section */
 .main h1 {
     color: #f1f1f1;
 }
@@ -93,17 +103,16 @@ body {
     color: #ccc;
 }
 
-/* Form Styles */
-input[type="text"], input[type="password"], input[type="email"], select {
+input[type="text"], input[type="password"], input[type="email"], input[type="date"], input[type="tel"], input[type="number"], select, textarea {
     background-color: #333;
     color: #f1f1f1;
     border: 1px solid #555;
     padding: 10px;
     margin: 5px 0;
-    width: 100%;
+    width: 98%;
 }
 
-input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus {
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="date"]:focus, input[type="tel"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
     background-color: #444;
     outline: none;
 }
@@ -120,7 +129,6 @@ input[type="submit"]:hover {
     background-color: #666;
 }
 
-/* Table Styles */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -140,15 +148,32 @@ th {
     color: #f1f1f1;
 }
 
-tr:nth-child(even) {
-    background-color: #2a2a2a;
+th a {
+    color: #f1f1f1;
+    text-decoration: none;
 }
 
-tr:nth-child(odd) {
-    background-color: #1e1e1e;
+tr img {
+    width: 100px;
+    height: auto;
+}
+.petrol {
+    background-color: #f0f0f0;
+    color: #000;
+}
+.diesel {
+    background-color: #d1e0e0;
+    color: #000;
+}
+.electric {
+    background-color: #e0f7fa;
+    color: #000;
+}
+.hybrid {
+    background-color: #e8f5e9;
+    color: #000;
 }
 
-/* Link Styles */
 a {
     color: #1e90ff;
 }
@@ -157,10 +182,66 @@ a:hover {
     color: #ff6347;
 }
 
-/* Error Class */
 .error {
     background-color: #ff4444;
     color: #fff;
     padding: 10px;
     border-radius: 5px;
+}
+
+.confirmation-message {
+    color: green;
+    font-size: 16px;
+    margin: 20px 0;
+    padding: 10px;
+    background-color: #eaffea;
+    border-left: 6px solid #4CAF50;
+}
+
+.car-details-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.car-images {
+    flex: 1;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.car-images img {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border: 1px solid #444;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.car-info {
+    flex: 2;
+    padding: 20px;
+}
+
+.marketing-info {
+    flex: 1;
+    padding: 20px;
+}
+
+.future {
+    background-color: #e0f7fa; 
+    color: #000;
+}
+
+.current {
+    background-color: #c8e6c9; 
+    color: #000;
+}
+
+.past {
+    background-color: #ffcdd2; 
+    color: #000;
 }

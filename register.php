@@ -1,118 +1,179 @@
 <?php
+include 'protected\db.php.inc';
+
+try {
+    $pdo = new PDO(DBCONNSTRING, DBUSER, DBPASS);
+} catch (PDOException $e) {
+    die($e->getMessage());
+}
+
 session_start();
-require 'protected/db.php.inc';
-
-$phase = $_SESSION['phase'] ?? 1;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($phase === 1) {
-        // Validate and store customer information
-        // TODO: Add more specific validation for each field
-
-        $_SESSION['customerInfo'] = $_POST;
-        $_SESSION['phase'] = 2;
-    } elseif ($phase === 2) {
-        // Validate and store account information
-        // TODO: Add more specific validation for each field
-
-        if ($_POST['password'] !== $_POST['passwordConfirm']) {
-            die('Passwords do not match');
+$phase = 1;     
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST["name"])) {
+        $_SESSION["name"] = $_POST["name"];
+        $_SESSION["address"] = $_POST["h_num"] . " " . $_POST["street"] . ", " . $_POST["city"] . ", " . $_POST["country"];
+        $_SESSION["dob"] = $_POST["dob"];
+        $_SESSION["id_number"] = $_POST["id_number"];
+        $_SESSION["email"] = $_POST["email"];
+        $_SESSION["telephone"] = $_POST["telephone"];
+        $_SESSION["cc_number"] = $_POST["cc_number"];
+        $_SESSION["cc_expiry"] = $_POST["cc_expiry"];
+        $_SESSION["cc_name"] = $_POST["cc_name"];
+        $_SESSION["cc_bank"] = $_POST["cc_bank"];
+        $phase = 2;
+    } elseif (isset($_POST["username"])) {
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            if ($_POST["password"] == $_POST["confirm_password"]) {
+                $_SESSION["username"] = $_POST["username"];
+                $_SESSION["password"] = $_POST["password"];
+                $phase = 3;
+            } else {
+                echo "Passwords do not match.";
+                $phase = 2;
+            }
         }
+    } elseif (isset($_POST["back"])) { 
+        $phase = 1;
+    } elseif (isset($_POST["confirm"])) {
 
-        $_SESSION['accountInfo'] = $_POST;
-        $_SESSION['phase'] = 3;
-    } elseif ($phase === 3) {
-        // Confirm and store all information
-        try {
-            $pdo = new PDO(DBCONNSTRING, DBUSER, DBPASS);
+        $stmt = $pdo->prepare("INSERT INTO customers (Name, Address, DateOfBirth, NationalID, Email, Telephone, CreditCardNumber, CreditCardExpiration, CreditCardName, CreditCardBank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$_SESSION["name"], $_SESSION["address"], $_SESSION["dob"], $_SESSION["id_number"], $_SESSION["email"], $_SESSION["telephone"], $_SESSION["cc_number"], $_SESSION["cc_expiry"], $_SESSION["cc_name"], $_SESSION["cc_bank"]]);
+        $customerId = $pdo->lastInsertId();
 
-            // Insert into customers table
-            $stmt = $pdo->prepare("INSERT INTO customers (Name, Address, DateOfBirth, NationalID, Email, Telephone, CreditCardNumber, CreditCardExpiration, CreditCardName, CreditCardBank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute(array_values($_SESSION['customerInfo']));
+        $stmt = $pdo->prepare("INSERT INTO customeraccounts (CustomerID, Username, Password) VALUES (?, ?, ?)");
+        $stmt->execute([$customerId, $_SESSION["username"], $_SESSION["password"]]);
+        $customerId = $pdo->lastInsertId();
 
-            $customerId = $pdo->lastInsertId();
-
-            // Insert into customeraccounts table
-            $stmt = $pdo->prepare("INSERT INTO customeraccounts (CustomerID, Username, Password) VALUES (?, ?, ?)");
-            $stmt->execute([$customerId, $_SESSION['accountInfo']['username'], $_SESSION['accountInfo']['password']]);
-
-            // Store customer ID in session
-            $_SESSION['customerId'] = $customerId;
-
-            // Reset phase and temporary data
-            $_SESSION['phase'] = 1;
-            unset($_SESSION['customerInfo'], $_SESSION['accountInfo']);
-
-            // Display confirmation message
-            echo "Registration successful! Your customer ID is $customerId.";
-            exit;
-        } catch (PDOException $e) {
-            die($e->getMessage());
-        }
+        $phase = 4;
     }
+} else {
+    $phase = 1;
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles/form.css">
     <title>Register</title>
-    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-    <form method="POST">
-        <?php if ($phase === 1): ?> 
-        <!-- Phase 1: Customer information fields -->
-        <fieldset>
-            <legend>Customer Information</legend>
-            <input type="text" name="name" placeholder="Name" required>
-            <input type="text" name="flatHouseNo" placeholder="Flat/House No" required>
-            <input type="text" name="street" placeholder="Street" required>
-            <input type="text" name="city" placeholder="City" required>
-            <input type="text" name="country" placeholder="Country" required>
-            <input type="date" name="dob" placeholder="Date of Birth" required>
-            <input type="text" name="idNumber" placeholder="ID Number" required>
-            <input type="email" name="email" placeholder="Email Address" required>
-            <input type="tel" name="telephone" placeholder="Telephone" required>
-            <input type="text" name="creditCardNumber" placeholder="Credit Card Number" required>
-            <input type="date" name="creditCardExpiration" placeholder="Credit Card Expiration Date" required>
-            <input type="text" name="creditCardName" placeholder="Name on Credit Card" required>
-            <input type="text" name="creditCardBank" placeholder="Bank Issuing Credit Card" required>
-            <input type="submit" value="Next">
-        </fieldset>
-        <?php elseif ($phase === 2): ?>
-        <!-- Phase 2: Account creation fields -->
-        <fieldset>
-            <legend>E-account Information</legend>
-            <input type="text" name="username" placeholder="Username" required minlength="6" maxlength="13">
-            <input type="password" name="password" placeholder="Password" required minlength="8" maxlength="12">
-            <input type="password" name="passwordConfirm" placeholder="Confirm Password" required minlength="8" maxlength="12">
-            <input type="submit" value="Next">
-        </fieldset>
+    <?php if ($phase == 1) : ?>
+        <form method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br>
 
-        <?php elseif ($phase === 3): ?>
-        <!-- Phase 3: Confirmation -->
-        <fieldset>
-            <legend>Confirmation</legend>
-            <!-- Display all stored information for review -->
-            <p>Name: <?php echo $_SESSION['name']; ?></p>
-            <p>Flat/House No: <?php echo $_SESSION['flatHouseNo']; ?></p>
-            <p>Street: <?php echo $_SESSION['street']; ?></p>
-            <p>City: <?php echo $_SESSION['city']; ?></p>
-            <p>Country: <?php echo $_SESSION['country']; ?></p>
-            <p>Date of Birth: <?php echo $_SESSION['dob']; ?></p>
-            <p>ID Number: <?php echo $_SESSION['idNumber']; ?></p>
-            <p>Email Address: <?php echo $_SESSION['email']; ?></p>
-            <p>Telephone: <?php echo $_SESSION['telephone']; ?></p>
-            <p>Credit Card Number: <?php echo $_SESSION['creditCardNumber']; ?></p>
-            <p>Credit Card Expiration Date: <?php echo $_SESSION['creditCardExpiration']; ?></p>
-            <p>Name on Credit Card: <?php echo $_SESSION['creditCardName']; ?></p>
-            <p>Bank Issuing Credit Card: <?php echo $_SESSION['creditCardBank']; ?></p>
-            <p>Username: <?php echo $_SESSION['username']; ?></p>
-            <input type="submit" value="Confirm">
-        </fieldset>
+            <div class="address-row">
+                <div class="address-field">
+                    <label for="h_num">House Number:</label>
+                    <input type="text" id="h_num" name="h_num" required>
+                </div>
 
+                <div class="address-field">
+                    <label for="street">Street:</label>
+                    <input type="text" id="street" name="street" required>
+                </div>
+            </div>
+
+            <div class="address-row">
+                <div class="address-field">
+                    <label for="city">City:</label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+
+                <div class="address-field">
+                    <label for="country">Country:</label>
+                    <input type="text" id="country" name="country" required>
+                </div>
+            </div>
+
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" name="dob" required><br>
+
+            <label for="id_number">ID Number:</label>
+            <input type="text" id="id_number" name="id_number" required><br>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required><br>
+
+            <label for="telephone">Telephone:</label>
+            <input type="tel" id="telephone" name="telephone" required><br><br>
+
+            <label for="cc_number">Credit Card Number:</label>
+            <input type="text" id="cc_number" name="cc_number" required><br>
+
+            <label for="cc_expiry">Credit Card Expiry Date:</label>
+            <input type="date" id="cc_expiry" name="cc_expiry" required><br>
+
+            <label for="cc_name">Name on Credit Card:</label>
+            <input type="text" id="cc_name" name="cc_name" required><br>
+
+            <label for="cc_bank">Bank Issuing Credit Card:</label>
+            <input type="text" id="cc_bank" name="cc_bank" required><br>
+
+            <input type="submit" value="Next">
+        </form>
+    <?php elseif ($phase == 2) : ?>
+        <form method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required pattern=".{6,13}" title="Username should be between 6-13 characters"><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required pattern=".{8,12}" title="Password should be between 8-12 characters"><br>
+
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required pattern=".{8,12}" title="Password should be between 8-12 characters"><br>
+
+            <input type="submit" value="Next">
+        </form>
+    <?php elseif ($phase == 3) : ?>
+        <?php
+        $username = $_SESSION['username'];
+        $stmt = $pdo->prepare('SELECT * FROM customeraccounts WHERE Username = :username');
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            $error = "Username already exists";
+            $phase = 2;  
+        }
+        ?>
+
+        <?php if (isset($error)): ?>
+            <form method="post">
+                <div id="error">
+                    <?php echo $error ?>
+                </div>
+                <input type="submit" value="Next">
+            </form>
+        <?php else: ?>
+            <form method="post">
+            <p>Please confirm your details:</p>
+            <p>Name: <?php echo $_SESSION["name"]; ?></p>
+            <p>Address: <?php echo $_SESSION["address"];?></p>
+            <p>Date of Birth: <?php echo $_SESSION["dob"]; ?></p>
+            <p>ID Number: <?php echo $_SESSION["id_number"]; ?></p>
+            <p>Email: <?php echo $_SESSION["email"]; ?></p>
+            <p>Telephone: <?php echo $_SESSION["telephone"]; ?></p>
+            <p>Credit Card Number: <?php echo $_SESSION["cc_number"]; ?></p>
+            <p>Credit Card Expiry Date: <?php echo $_SESSION["cc_expiry"]; ?></p>
+            <p>Name on Credit Card: <?php echo $_SESSION["cc_name"]; ?></p>
+            <p>Bank Issuing Credit Card: <?php echo $_SESSION["cc_bank"]; ?></p>
+            <p>Username: <?php echo $_SESSION["username"]; ?></p>
+            <p>Password: <?php echo $_SESSION["password"]; ?></p>
+            <input type="submit" name="confirm" value="Confirm">
+            <input type="submit" name="back" value="Back">
+            </form>
         <?php endif; ?>
-    </form>
+    <?php elseif ($phase == 4) : ?>
+        <?php
+        echo "Thank you for registering. Your customer ID is " . $customerId;
+        session_destroy();
+        ?>
+        <br><br><p><a href="index.php">Return to home page</a></p>
+    <?php endif; ?>
 </body>
+
 </html>

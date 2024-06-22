@@ -1,32 +1,48 @@
 <?php
-    include 'protected/db.php.inc';
-    try { 
+session_start();
+include 'protected/db.php.inc';
+if (isset($_SESSION['ManagerID'])) {
+    $isManager = true;
+}
+$locationID = $_GET['ref'] ?? null;
+$locationDetails = null;
+if ($locationID) {
+    try {
         $pdo = new PDO(DBCONNSTRING, DBUSER, DBPASS);
-    } catch (PDOException $e){
-        die( $e->getMessage() );
+        $stmt = $pdo->prepare("SELECT * FROM locations WHERE locationID = ?");
+        $stmt->execute([$locationID]);
+        $locationDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        die($e->getMessage());
     }
 
-    session_start();
-
-    if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true){
-        $stmt = $pdo->prepare('SELECT * FROM customeraccounts WHERE Username = ?');
-        $stmt->execute([$_SESSION['username']]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (isset($user['ManagerID'])){
-            $_SESSION['ManagerID'] = $user['ManagerID'];
-            $isManager = true;
-            $_SESSION['isManager'] = true;
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $name = $_POST["Name"];
+        $address = $_POST["Address"];
+        $telephone = $_POST["Telephone"];
+        try{
+            $stmt = $pdo->prepare("UPDATE locations SET Name = ?, Address = ?, Telephone = ? WHERE LocationID = ?");
+            $stmt->execute([$name, $address, $telephone, $locationID]);
+            echo "<div class='confirmation-message'>Location details have been successfully updated.</div>";
+        } catch (PDOException $e) {
+            die($e->getMessage());
         }
+        $stmt = $pdo->prepare("SELECT * FROM locations WHERE locationID = ?");
+        $stmt->execute([$locationID]);
+        $locationDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+        
     }
 
+} else {
+    echo "Location reference number is required.";
+    exit;
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxaCar</title>
+    <title>Location Details</title>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
 <body>
@@ -65,18 +81,19 @@
                 <?php endif; ?>
                 <a href="searchCar.php">Search a Car</a>
             </nav>
-            <main class="main">
-                <h1>Welcome to LuxaRent</h1>
-                <p>
-                    LuxaRent is a car rental service that offers a wide range of cars for rent. 
-                    We have a variety of cars that you can choose from, whether you need a car for a day or a month, we have you covered. 
-                    Our cars are well maintained and we offer competitive prices. 
-                    We also offer a delivery service, where we can deliver the car to your location. 
-                    We are committed to providing the best service to our customers and we are always looking for ways to improve. 
-                    If you have any questions or need assistance, please do not hesitate to contact us. 
-                    Thank you for choosing LuxaRent.
-                </p>
-            </main>
+        <main class="main">
+            <form method="post">
+                <label for="LocationID">Location ID:</label><br>
+                <input type="text" name="LocationID" value="<?php echo $locationDetails['LocationID']; ?>" readonly>
+                <label for="Name">Name:</label><br>
+                <input type="text" id="Name" name="Name" value="<?php echo $locationDetails['Name']; ?>"><br>
+                <label for="Address">Address:</label><br>
+                <input type="text" id="Address" name="Address" value="<?php echo $locationDetails['Address']; ?>"><br>
+                <label for="Telephone">Telephone:</label><br>
+                <input type="text" id="Telephone" name="Telephone" value="<?php echo $locationDetails['Telephone']; ?>"><br><br>
+                <input type="submit" value="Update">
+            </form>
+        </main>
         </div>
         <footer class="footer">
             <div>

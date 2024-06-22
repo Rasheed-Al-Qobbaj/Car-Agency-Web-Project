@@ -1,23 +1,34 @@
 <?php
-    include 'protected/db.php.inc';
-    try { 
-        $pdo = new PDO(DBCONNSTRING, DBUSER, DBPASS);
-    } catch (PDOException $e){
-        die( $e->getMessage() );
-    }
+include 'protected\db.php.inc';
 
-    session_start();
+try {
+    $pdo = new PDO(DBCONNSTRING, DBUSER, DBPASS);
+} catch (PDOException $e) {
+    die($e->getMessage());
+}
 
-    if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true){
-        $stmt = $pdo->prepare('SELECT * FROM customeraccounts WHERE Username = ?');
-        $stmt->execute([$_SESSION['username']]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (isset($user['ManagerID'])){
-            $_SESSION['ManagerID'] = $user['ManagerID'];
-            $isManager = true;
-            $_SESSION['isManager'] = true;
-        }
+session_start();
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
+
+    $stmt = $pdo->prepare('SELECT * FROM customeraccounts WHERE Username = :username AND Password = :password');
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':password', $password);
+
+    $stmt->execute();
+
+    if ($stmt->rowCount() > 0) {
+        $user = $stmt->fetch();
+        $_SESSION['loggedin'] = true;
+        $_SESSION['username'] = $username;
+        header('Location: index.php'); 
+        exit;
+    } else {
+        $_SESSION['error'] = "Invalid username or password";
     }
+}
 
 ?>
 
@@ -26,7 +37,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxaCar</title>
+    <title>Car Rental Service</title>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
 <body>
@@ -66,18 +77,23 @@
                 <a href="searchCar.php">Search a Car</a>
             </nav>
             <main class="main">
-                <h1>Welcome to LuxaRent</h1>
-                <p>
-                    LuxaRent is a car rental service that offers a wide range of cars for rent. 
-                    We have a variety of cars that you can choose from, whether you need a car for a day or a month, we have you covered. 
-                    Our cars are well maintained and we offer competitive prices. 
-                    We also offer a delivery service, where we can deliver the car to your location. 
-                    We are committed to providing the best service to our customers and we are always looking for ways to improve. 
-                    If you have any questions or need assistance, please do not hesitate to contact us. 
-                    Thank you for choosing LuxaRent.
-                </p>
+        
+                <form  method="post">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                    <input type="submit" value="Login">
+                </form>
+                <p>Don't have an account? <a href="register.php">Register here</a></p>
+                <?php if (isset($_SESSION['error'])) : ?>
+                <div class="error">
+                    <?php echo $_SESSION['error'];
+                    unset($_SESSION['error']); ?>
+                </div>
+                <?php endif; ?>
             </main>
-        </div>
+            </div>
         <footer class="footer">
             <div>
                 <img src="protected/logo.png" alt="Small Logo">
@@ -89,6 +105,6 @@
                 <a href="contact.php">Contact Us</a>
             </div>
         </footer>
-    </div>
+    
 </body>
 </html>

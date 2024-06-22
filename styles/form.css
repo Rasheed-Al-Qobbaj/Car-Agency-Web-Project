@@ -1,0 +1,98 @@
+body {
+    background-color: #1e1e1e;
+    color: #f1f1f1;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+    padding: 20px;
+}
+
+form {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="date"],
+form input[type="tel"],
+form input[type="month"],
+form input[type="number"],
+form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form input[type="submit"] {
+    padding: 10px 20px;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form input[type="submit"]:hover {
+    background-color: #444;
+}
+
+.address-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.address-field {
+    flex: 1;
+    margin-right: 10px;
+    padding-right: 20px;
+}
+
+.address-field:last-child {
+    margin-right: 0;
+    padding-right: 0;
+}
+
+#error {
+    color: red;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+#styled-link {
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+#styled-link:hover, #styled-link:active {
+    color: white;
+    text-decoration: underline;
+}
+
+a:link, a:visited {
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a:hover, a:active {
+    color: white;
+    text-decoration: underline;
+}
